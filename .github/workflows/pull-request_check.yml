@@ -13,7 +13,7 @@ jobs:
       - name: Install required tools (optional)
         # Add this step if necessary for your regex engine or validation script
         run: |
-          sudo apt update && sudo apt install -y <your-package-name>  # Example: ripgrep
+          sudo apt update && sudo apt install -y ripgrep
 
       - name: Validate PR title with regex
         run: |
