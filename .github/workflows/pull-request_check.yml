@@ -1,8 +1,12 @@
 name: PR Title Check
 
 on:
+  # Trigger on pull request open/reopen events (for initial checks)
   pull_request:
     types: [opened, reopened]
+  # Additionally, trigger on pull request comment edits (for title changes)
+  pull_request:
+    types: [edited]
 
 jobs:
   check-title:
@@ -13,7 +17,7 @@ jobs:
       - name: Install required tools (optional)
         # Add this step if necessary for your regex engine or validation script
         run: |
-          sudo apt update && sudo apt install -y ripgrep
+          sudo apt update && sudo apt install -y ripgrep  # Example: ripgrep
 
       - name: Validate PR title with regex
         run: |
@@ -35,7 +39,7 @@ jobs:
       - name: Close PR (if title doesn't match regex)
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             github.issues.addComment({
               issue_number: context.issue.number,
