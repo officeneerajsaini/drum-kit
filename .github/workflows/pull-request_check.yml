@@ -5,8 +5,6 @@ on:
   pull_request:
     types: [opened, reopened]
   # Additionally, trigger on pull request comment edits (for title changes)
-  pull_request:
-    types: [edited]
 
 jobs:
   check-title:
@@ -23,7 +21,7 @@ jobs:
         run: |
           title=$GITHUB_EVENT.pull_request.title
           regex="^(feat|fix|docs)-\d+:(.*)$"  # Replace with your desired regex pattern
-          if [[ ! $(< PR_TITLE.txt) =~ $regex ]]; then
+          if [[ ! $(echo "$title" =~ $regex) ]]; then
             echo "Hey there! Thanks for your PR, but the title doesn't quite meet our quality checks ️‍♀️"
             echo "**Wait a minute!** Have you reviewed our awesome contribution guidelines?  (They're super helpful!)"
             echo "Unfortunately, your current title doesn't follow the required format. Here's what it should look like:"
