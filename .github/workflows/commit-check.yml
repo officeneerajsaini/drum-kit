@@ -12,8 +12,8 @@ jobs:
 
       - name: Validate commit message with regex
         run: |
-          git fetch origin main:main  # Fetch latest commits
-          commit_messages=$(git log --pretty=format:%s origin/main..HEAD)
+          git fetch --depth=1  # Fetch latest commits efficiently
+          commit_messages=$(git log --pretty=format:%s HEAD~..HEAD)
           regex="^(feat|fix|docs): .*$"  # Replace with your desired regex pattern
           if [[ ! $(echo "$commit_messages" | grep -qE "$regex") ]]; then
             echo "Hey there! Looks like some commit messages don't follow our format "
