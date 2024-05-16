@@ -26,5 +26,3 @@ jobs:
             exit 1  # Exit with non-zero code to indicate failure
           fi
 
-# (Optional) Add your existing commit message check steps here
-
