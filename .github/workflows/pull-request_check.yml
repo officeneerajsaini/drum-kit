@@ -10,36 +10,48 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install required tools (optional)
-        run: |
-          sudo apt update && sudo apt install -y ripgrep  # Example: ripgrep
-
       - name: Validate PR title with regex
+        id: validate_title
         run: |
-          title=$GITHUB_EVENT.pull_request.title
-          regex="^(feat|fix|docs)-\d+:(.*)$"  # Replace with your desired regex pattern
-          if [[ ! $(echo "$title" =~ $regex) ]]; then
-            echo "Hey there! Thanks for your PR, but the title doesn't quite meet our quality checks ️‍♀️"
-            echo "**Wait a minute!** Have you reviewed our awesome contribution guidelines?  (They're super helpful!)"
-            echo "Unfortunately, your current title doesn't follow the required format. Here's what it should look like:"
-            echo "```"
-            echo "fix-#124: Added responsiveness to the Home page screen"  # Example
-            echo "```"
-            echo "Give it another shot with the proper format, and I'll be happy to reopen the PR for you. "
-            echo ""
-            echo "P.S. Remember, keep it clear and concise! "
-            exit 1  # Exit with non-zero code to close the PR
+          title="${{ github.event.pull_request.title }}"
+          regex="^(feat|fix|docs)-\\d+:(.*)$"
+          if [[ ! "$title" =~ $regex ]]; then
+            echo "title doesn't match"
+            echo "::set-output name=title_valid::false"
+          else
+            echo "::set-output name=title_valid::true"
           fi
 
-      - name: Close PR (if title doesn't match regex)
+      - name: Comment and Close PR (if title doesn't match regex)
+        if: steps.validate_title.outputs.title_valid == 'false'
         uses: actions/github-script@v6
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            github.issues.addComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: context.body
-            })
-            core.setFailed('PR title does not match the required format.')
+            const issue_number = context.payload.pull_request.number;
+            const repo = context.repo.repo;
+            const owner = context.repo.owner;
+
+            await github.issues.createComment({
+              issue_number: issue_number,
+              owner: owner,
+              repo: repo,
+              body: `
+                Hey there! Thanks for your PR, but the title doesn't quite meet our quality checks. Please review our contribution guidelines. Your title should follow the format:
+
+                \`\`\`
+                fix-#124: Added responsiveness to the Home page screen
+                \`\`\`
+
+                Give it another shot with the proper format, and we'll be happy to reopen the PR for you.
+                `
+            });
+
+            // Close the pull request
+            await github.pulls.update({
+              owner: owner,
+              repo: repo,
+              pull_number: issue_number,
+              state: 'closed'
+            });
+            core.setFailed('PR title does not match the required format.');
