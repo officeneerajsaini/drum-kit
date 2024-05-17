@@ -14,7 +14,7 @@ jobs:
         id: validate_title
         run: |
           title="${{ github.event.pull_request.title }}"
-          regex="^(feat|fix|docs)-\d+:(.*)$"
+          regex="^(feat|fix|docs)-\\d+:(.*)$"
           if [[ ! "$title" =~ $regex ]]; then
             echo "title doesn't match"
             echo "::set-output name=title_valid::false"
@@ -22,15 +22,15 @@ jobs:
             echo "::set-output name=title_valid::true"
           fi
 
-      - name: Close PR (if title doesn't match regex)
+      - name: Comment and Close PR (if title doesn't match regex)
         if: steps.validate_title.outputs.title_valid == 'false'
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const issue_number = context.payload.pull_request.number;
-            const repo = context.payload.repository.name;
-            const owner = context.payload.repository.owner.login;
+            const repo = context.repo.repo;
+            const owner = context.repo.owner;
 
             await github.issues.createComment({
               issue_number: issue_number,
